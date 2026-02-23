@@ -8,7 +8,9 @@ import {
   Moon,
   Sun,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Settings,
+  ShieldAlert
 } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { cn } from '../../utils/cn';
@@ -27,6 +29,8 @@ interface SidebarProps {
 
 export function Sidebar({ onLogout }: SidebarProps) {
   const { activeModule, setActiveModule, isDarkMode, toggleDarkMode, user } = useAppStore();
+
+  const isAdmin = user?.email === 'mishrashrey.000@gmail.com' || user?.email === 'admin@example.com' || user?.name?.toLowerCase().includes('shrey');
 
   return (
     <aside className={cn(
@@ -108,6 +112,46 @@ export function Sidebar({ onLogout }: SidebarProps) {
           </div>
           <span className="font-medium text-sm">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
         </button>
+
+        {/* Settings Button (Shifted Profile here) */}
+        <button
+          onClick={() => setActiveModule('profile')}
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+            activeModule === 'profile'
+              ? 'bg-violet-600/10 text-violet-400'
+              : isDarkMode
+                ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+          )}
+        >
+          <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
+            isDarkMode ? 'bg-gray-800' : 'bg-gray-100')}>
+            <Settings className={cn("w-4 h-4", activeModule === 'profile' ? "text-violet-400" : "text-gray-400")} />
+          </div>
+          <span className="font-medium text-sm">Settings</span>
+        </button>
+
+        {/* Admin Console (Conditional) */}
+        {isAdmin && (
+          <button
+            onClick={() => setActiveModule('admin')}
+            className={cn(
+              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+              activeModule === 'admin'
+                ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                : isDarkMode
+                  ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/5'
+                  : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
+            )}
+          >
+            <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
+              isDarkMode ? 'bg-gray-800' : 'bg-gray-100')}>
+              <ShieldAlert className={cn("w-4 h-4", activeModule === 'admin' ? "text-red-400" : "text-gray-400")} />
+            </div>
+            <span className="font-medium text-sm">Admin Console</span>
+          </button>
+        )}
 
 
         {/* User Profile + Logout */}

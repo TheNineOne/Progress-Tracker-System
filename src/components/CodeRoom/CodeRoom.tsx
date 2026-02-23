@@ -360,10 +360,22 @@ export function CodeRoom() {
     const id = joinRoomId.trim().toUpperCase();
     if (!id) { setJoinError('Please enter a Room ID'); return; }
 
-    const room = codeRooms.find(r => r.id === id);
+    let room = codeRooms.find(r => r.id === id);
+
+    // If room not found in local storage, create a temporary one for cloud sync
     if (!room) {
-      setJoinError(`Room "${id}" not found. (Note: Rooms are local to your browser session in this demo)`);
-      return;
+      room = {
+        id,
+        name: `Cloud Room: ${id}`,
+        code: '// Waiting for code from other participants...\n// If you are the first person here, start typing!',
+        language: 'javascript',
+        participants: [],
+        comments: [],
+        activityLog: [],
+        status: 'active',
+        createdAt: new Date(),
+      };
+      addCodeRoom(room);
     }
 
     // Add participant if not already in

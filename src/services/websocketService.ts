@@ -1,5 +1,5 @@
-// WebSocket Service using BroadcastChannel API for real-time cross-tab communication
-// In a real app, this would connect to a Spring Boot WebSocket server via STOMP
+// WebSocket Service using PieSocket for real cross-user communication
+// This replaces the local BroadcastChannel with a real cloud-based WebSocket relay.
 
 export type WSEventType =
   | 'USER_JOINED'
@@ -26,48 +26,65 @@ export interface WSMessage {
 type MessageHandler = (msg: WSMessage) => void;
 
 class WebSocketService {
-  private channel: BroadcastChannel | null = null;
+  private socket: WebSocket | null = null;
   private handlers: Map<string, MessageHandler[]> = new Map();
   private currentRoomId: string | null = null;
   public userId: string = '';
   public userName: string = '';
-  private pingInterval: ReturnType<typeof setInterval> | null = null;
   private isConnected: boolean = false;
   private onConnectionChange: ((connected: boolean) => void) | null = null;
-  private instanceId: string = Math.random().toString(36).substring(2, 10); // Unique to this tab
+  private instanceId: string = Math.random().toString(36).substring(2, 10);
 
-  // Simulate WebSocket connection to a room
+  // Public Demo API Key for PieSocket (Cloud WebSocket Relay)
+  private readonly API_KEY = 'VCXCEuvh3eb96pS6S2F2An9LInG6p0XkMhFv8E8X';
+  private readonly CLUSTER = 'free.blr2';
+
   connect(roomId: string, userId: string, userName: string, onConnectionChange?: (connected: boolean) => void) {
-    this.disconnect(); // Clean up previous connection
+    this.disconnect();
 
     this.currentRoomId = roomId;
     this.userId = userId;
     this.userName = userName;
     this.onConnectionChange = onConnectionChange || null;
 
-    // BroadcastChannel simulates WebSocket server broadcast
-    // Each room gets its own channel (like a WebSocket topic in STOMP)
-    this.channel = new BroadcastChannel(`devElevate_room_${roomId}`);
+    // Use PieSocket for real-time cloud relay
+    const wsUrl = `wss://${this.CLUSTER}.piesocket.com/v3/${roomId}?api_key=${this.API_KEY}&notify_self=0`;
 
-    this.channel.onmessage = (event: MessageEvent<WSMessage>) => {
-      const msg: WSMessage = event.data;
-      // Don't process our own messages (simulate server echo filtering per connection/tab)
-      if (msg.instanceId === this.instanceId) return;
-      this.dispatchMessage(msg);
-    };
+    try {
+      this.socket = new WebSocket(wsUrl);
 
-    this.isConnected = true;
-    this.onConnectionChange?.(true);
+      this.socket.onopen = () => {
+        this.isConnected = true;
+        this.onConnectionChange?.(true);
+        console.log(`[Cloud-WS] Connected to room: ${roomId}`);
+        // Announce join to others in the cloud room
+        this.send('USER_JOINED', { userName });
+      };
 
-    // Simulate WebSocket heartbeat (like STOMP PING/PONG)
-    this.pingInterval = setInterval(() => {
-      this.send('PING', {});
-    }, 5000);
+      this.socket.onmessage = (event) => {
+        try {
+          const msg: WSMessage = JSON.parse(event.data);
+          // Filter out our own messages sent by the relay (if notify_self was 1)
+          if (msg.instanceId === this.instanceId) return;
+          this.dispatchMessage(msg);
+        } catch (e) {
+          // Might be a non-JSON message from the server
+        }
+      };
 
-    // Announce join
-    this.send('USER_JOINED', { userName });
+      this.socket.onclose = () => {
+        this.isConnected = false;
+        this.onConnectionChange?.(false);
+      };
 
-    console.log(`[WS] Connected to room: ${roomId} as ${userName}`);
+      this.socket.onerror = (err) => {
+        console.error('[Cloud-WS] Connection error:', err);
+      };
+
+    } catch (e) {
+      console.error('[Cloud-WS] Setup error:', e);
+    }
+
     return this;
   }
 
@@ -76,31 +93,23 @@ class WebSocketService {
       this.send('USER_LEFT', { userName: this.userName });
     }
 
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval);
-      this.pingInterval = null;
-    }
-
-    if (this.channel) {
-      this.channel.close();
-      this.channel = null;
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
     }
 
     this.isConnected = false;
     this.onConnectionChange?.(false);
     this.currentRoomId = null;
     this.handlers.clear();
-    console.log('[WS] Disconnected');
+    console.log('[Cloud-WS] Disconnected');
   }
 
-  // Subscribe to specific event types (like STOMP topic subscription)
   subscribe(eventType: WSEventType, handler: MessageHandler): () => void {
     if (!this.handlers.has(eventType)) {
       this.handlers.set(eventType, []);
     }
     this.handlers.get(eventType)!.push(handler);
-
-    // Return unsubscribe function
     return () => {
       const handlers = this.handlers.get(eventType) || [];
       const index = handlers.indexOf(handler);
@@ -108,9 +117,8 @@ class WebSocketService {
     };
   }
 
-  // Send message to all room participants (like STOMP SEND)
   send(type: WSEventType, payload: Record<string, unknown>) {
-    if (!this.channel || !this.currentRoomId) return;
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN || !this.currentRoomId) return;
 
     const msg: WSMessage = {
       type,
@@ -123,28 +131,24 @@ class WebSocketService {
     };
 
     try {
-      this.channel.postMessage(msg);
+      this.socket.send(JSON.stringify(msg));
     } catch (e) {
-      console.error('[WS] Send error:', e);
+      console.error('[Cloud-WS] Send error:', e);
     }
   }
 
-  // Broadcast code update (throttled in component)
   sendCodeUpdate(code: string) {
     this.send('CODE_UPDATE', { code });
   }
 
-  // Broadcast cursor position
   sendCursorUpdate(line: number, col: number) {
     this.send('CURSOR_UPDATE', { line, col });
   }
 
-  // Broadcast new comment
   sendComment(comment: { id: string; lineNumber: number; content: string; author: string }) {
     this.send('COMMENT_ADDED', { comment });
   }
 
-  // Broadcast review status
   sendApproval() {
     this.send('REVIEW_APPROVED', {});
   }
@@ -167,5 +171,4 @@ class WebSocketService {
   }
 }
 
-// Singleton instance (like a single WebSocket connection)
 export const wsService = new WebSocketService();

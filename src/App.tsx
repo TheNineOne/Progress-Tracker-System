@@ -7,6 +7,7 @@ import { ResumeAnalyzer } from './components/Resume/ResumeAnalyzer';
 import { ProductivityTracker } from './components/Productivity/ProductivityTracker';
 import { Login } from './components/Auth/Login';
 import { Profile } from './components/Dashboard/Profile';
+import { AdminPanel } from './components/Admin/AdminPanel';
 import { useAppStore } from './store/appStore';
 import { cn } from './utils/cn';
 import { wsService } from './services/websocketService';
@@ -53,6 +54,8 @@ export function App() {
         return <ProductivityTracker />;
       case 'profile':
         return <Profile />;
+      case 'admin':
+        return <AdminPanel />;
       default:
         return <Dashboard />;
     }
