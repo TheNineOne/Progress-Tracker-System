@@ -52,10 +52,10 @@ export function ProductivityTracker() {
     return {
       day: date.toLocaleDateString('en-US', { weekday: 'short' }),
       date: dateStr,
-      coding: log?.codingTime || Math.floor(Math.random() * 120 + 60),
-      dsa: log?.dsaPractice || Math.floor(Math.random() * 5),
-      study: log?.studyHours || Math.floor(Math.random() * 4 + 1),
-      commits: log?.githubCommits || Math.floor(Math.random() * 8),
+      coding: log?.codingTime || 0,
+      dsa: log?.dsaPractice || 0,
+      study: log?.studyHours || 0,
+      commits: log?.githubCommits || 0,
     };
   });
 

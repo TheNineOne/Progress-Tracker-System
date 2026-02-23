@@ -11,6 +11,7 @@ import {
 import { useAppStore } from '../../store/appStore';
 import { cn } from '../../utils/cn';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Leaderboard } from './Leaderboard';
 
 export function Dashboard() {
   const { isDarkMode, user, interviewSessions, resumeAnalyses, codeRooms, getUserDailyLogs, setActiveModule } = useAppStore();
@@ -122,7 +123,16 @@ export function Dashboard() {
           <h1 className={cn(
             "text-3xl font-bold",
             isDarkMode ? "text-white" : "text-gray-900"
-          )}>Welcome back, {user?.name || 'Guest'}! 👋</h1>
+          )}>
+            Welcome back,
+            <button
+              onClick={() => setActiveModule('profile')}
+              className="ml-2 bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent hover:opacity-80 transition-all"
+            >
+              {user?.name || 'Guest'}!
+            </button>
+            👋
+          </h1>
           <p className={cn(
             "mt-1",
             isDarkMode ? "text-gray-400" : "text-gray-600"
@@ -365,46 +375,60 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Dynamic Achievements */}
-      {dynamicAchievements.length > 0 && (
-        <div className={cn(
-          "p-6 rounded-2xl border",
-          isDarkMode
-            ? "bg-gray-800/50 border-gray-700"
-            : "bg-white border-gray-200 shadow-sm"
-        )}>
-          <h2 className={cn(
-            "text-xl font-bold mb-4 flex items-center gap-2",
-            isDarkMode ? "text-white" : "text-gray-900"
+      {/* Leaderboard and Achievements */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Leaderboard />
+
+        {dynamicAchievements.length > 0 ? (
+          <div className={cn(
+            "p-6 rounded-2xl border",
+            isDarkMode
+              ? "bg-gray-800/50 border-gray-700"
+              : "bg-white border-gray-200 shadow-sm"
           )}>
-            <Award className="w-5 h-5 text-amber-500" />
-            Your Achievements
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {dynamicAchievements.map((achievement) => (
-              <div
-                key={achievement.title}
-                className={cn(
-                  "flex items-center gap-3 p-4 rounded-xl",
-                  isDarkMode ? "bg-gray-700/50" : "bg-gray-100"
-                )}
-              >
-                <span className="text-3xl">{achievement.icon}</span>
-                <div>
-                  <p className={cn(
-                    "font-medium",
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  )}>{achievement.title}</p>
-                  <p className={cn(
-                    "text-xs mt-1",
-                    isDarkMode ? "text-gray-400" : "text-gray-600"
-                  )}>{achievement.desc}</p>
+            <h2 className={cn(
+              "text-xl font-bold mb-4 flex items-center gap-2",
+              isDarkMode ? "text-white" : "text-gray-900"
+            )}>
+              <Award className="w-5 h-5 text-amber-500" />
+              Your Achievements
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {dynamicAchievements.map((achievement) => (
+                <div
+                  key={achievement.title}
+                  className={cn(
+                    "flex items-center gap-3 p-4 rounded-xl",
+                    isDarkMode ? "bg-gray-700/50" : "bg-gray-100"
+                  )}
+                >
+                  <span className="text-3xl">{achievement.icon}</span>
+                  <div>
+                    <p className={cn(
+                      "font-medium",
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    )}>{achievement.title}</p>
+                    <p className={cn(
+                      "text-xs mt-1",
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    )}>{achievement.desc}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className={cn(
+            "p-6 rounded-2xl border flex flex-col items-center justify-center text-center opacity-60",
+            isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-white border-gray-200"
+          )}>
+            <Award className="w-12 h-12 mb-4 text-gray-500" />
+            <p className={isDarkMode ? "text-gray-400" : "text-gray-600 font-medium"}>
+              Complete activities to earn achievements!
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

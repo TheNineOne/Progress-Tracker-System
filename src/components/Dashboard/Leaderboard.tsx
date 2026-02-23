@@ -14,7 +14,7 @@ const leaderboardData = [
 ];
 
 export function Leaderboard() {
-  const { isDarkMode } = useAppStore();
+  const { isDarkMode, setActiveModule } = useAppStore();
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -34,26 +34,26 @@ export function Leaderboard() {
 
   const getRankBg = (rank: number, isCurrentUser?: boolean) => {
     if (isCurrentUser) {
-      return isDarkMode 
-        ? "bg-violet-500/20 border-violet-500/50" 
+      return isDarkMode
+        ? "bg-violet-500/20 border-violet-500/50"
         : "bg-violet-100 border-violet-300";
     }
     switch (rank) {
       case 1:
-        return isDarkMode 
-          ? "bg-amber-500/10 border-amber-500/30" 
+        return isDarkMode
+          ? "bg-amber-500/10 border-amber-500/30"
           : "bg-amber-50 border-amber-200";
       case 2:
-        return isDarkMode 
-          ? "bg-gray-500/10 border-gray-500/30" 
+        return isDarkMode
+          ? "bg-gray-500/10 border-gray-500/30"
           : "bg-gray-100 border-gray-200";
       case 3:
-        return isDarkMode 
-          ? "bg-amber-600/10 border-amber-600/30" 
+        return isDarkMode
+          ? "bg-amber-600/10 border-amber-600/30"
           : "bg-amber-100/50 border-amber-200";
       default:
-        return isDarkMode 
-          ? "bg-gray-800/50 border-gray-700" 
+        return isDarkMode
+          ? "bg-gray-800/50 border-gray-700"
           : "bg-white border-gray-200";
     }
   };
@@ -96,7 +96,14 @@ export function Leaderboard() {
                 user.isCurrentUser && "text-violet-400",
                 isDarkMode ? "text-white" : "text-gray-900"
               )}>
-                {user.name}
+                {user.isCurrentUser ? (
+                  <button
+                    onClick={() => setActiveModule('profile')}
+                    className="hover:underline transition-all"
+                  >
+                    {user.name}
+                  </button>
+                ) : user.name}
                 {user.isCurrentUser && (
                   <span className={cn(
                     "ml-2 px-2 py-0.5 rounded text-xs",

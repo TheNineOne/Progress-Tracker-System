@@ -6,6 +6,7 @@ import { CodeRoom } from './components/CodeRoom/CodeRoom';
 import { ResumeAnalyzer } from './components/Resume/ResumeAnalyzer';
 import { ProductivityTracker } from './components/Productivity/ProductivityTracker';
 import { Login } from './components/Auth/Login';
+import { Profile } from './components/Dashboard/Profile';
 import { useAppStore } from './store/appStore';
 import { cn } from './utils/cn';
 import { wsService } from './services/websocketService';
@@ -50,6 +51,8 @@ export function App() {
         return <ResumeAnalyzer />;
       case 'productivity':
         return <ProductivityTracker />;
+      case 'profile':
+        return <Profile />;
       default:
         return <Dashboard />;
     }

@@ -136,7 +136,7 @@ module.exports = router;`,
 const PARTICIPANT_COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
 export function CodeRoom() {
-  const { isDarkMode, codeRooms, currentRoom, addCodeRoom, updateCodeRoom, setCurrentRoom, joinRoom, user } = useAppStore();
+  const { isDarkMode, codeRooms, currentRoom, addCodeRoom, updateCodeRoom, setCurrentRoom, user } = useAppStore();
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -360,9 +360,9 @@ export function CodeRoom() {
     const id = joinRoomId.trim().toUpperCase();
     if (!id) { setJoinError('Please enter a Room ID'); return; }
 
-    const room = joinRoom(id);
+    const room = codeRooms.find(r => r.id === id);
     if (!room) {
-      setJoinError(`Room "${id}" not found. Make sure the Room ID is correct.`);
+      setJoinError(`Room "${id}" not found. (Note: Rooms are local to your browser session in this demo)`);
       return;
     }
 
@@ -389,6 +389,7 @@ export function CodeRoom() {
     setShowJoinModal(false);
     setJoinRoomId('');
     setJoinError('');
+    setCurrentRoom(room);
   };
 
   const handleAddComment = () => {
